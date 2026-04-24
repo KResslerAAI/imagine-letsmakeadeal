@@ -132,7 +132,6 @@ function WelcomeScreen({ onSubmit }) {
   const [input, setInput] = useState('')
   return (
     <div className="min-h-screen flex flex-col px-6 py-8" style={{ background: '#1A1A1A' }}>
-      <header className="mb-10"><LogoMark /></header>
 
       <main className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
         <p className="text-xs uppercase tracking-[0.25em] font-bold mb-3" style={{ color: '#FF6600' }}>
