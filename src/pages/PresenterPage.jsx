@@ -236,7 +236,7 @@ function FinalResultsDisplay({ useCases, round1Results, round2Results, winner })
           </p>
           {winner.delta > 0 && (
             <p className="mt-2 font-semibold" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 26 }}>
-              +{fmt(winner.delta)} more in Round 2
+              +{Math.round(winner.delta * 100)}% increase from Round 1 to Round 2
             </p>
           )}
         </div>

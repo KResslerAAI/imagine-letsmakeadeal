@@ -8,15 +8,16 @@ const POLL_MS = 3000
 function getLS(key, fallback = null) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback }
 }
-function setLS(key, val) { localStorage.setItem(key, JSON.stringify(val)) }
-
-// Ensure this device has a stable ID
-if (!getLS('lmad:id')) {
-  const id = typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-  setLS('lmad:id', id)
+function setLS(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)) } catch {}
 }
+
+// Ensure this device has a stable ID; keep in memory in case localStorage is unavailable
+const _generatedId = typeof crypto !== 'undefined' && crypto.randomUUID
+  ? crypto.randomUUID()
+  : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+if (!getLS('lmad:id')) setLS('lmad:id', _generatedId)
+function getDeviceId() { return getLS('lmad:id') || _generatedId }
 
 // ── Formatting ────────────────────────────────────────────────────────────────
 const fmt = (n) => '$' + Math.abs(Number(n)).toLocaleString('en-US')
@@ -48,7 +49,16 @@ export default function AttendeePage() {
   const fetchState = useCallback(async () => {
     try {
       const res = await fetch('/api/get-state')
-      if (res.ok) setGameData(await res.json())
+      if (res.ok) {
+        const data = await res.json()
+        if (data.state === 'lobby') {
+          setLS('lmad:r1voted', false); setRound1Voted(false)
+          setLS('lmad:r2voted', false); setRound2Voted(false)
+          setLS('lmad:r1votes', null);  setRound1Votes(null)
+          setLS('lmad:r2votes', null);  setRound2Votes(null)
+        }
+        setGameData(data)
+      }
     } catch {}
   }, [])
 
@@ -68,7 +78,7 @@ export default function AttendeePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          attendeeId:   getLS('lmad:id'),
+          attendeeId:   getDeviceId(),
           attendeeName: name,
           round,
           amounts,
