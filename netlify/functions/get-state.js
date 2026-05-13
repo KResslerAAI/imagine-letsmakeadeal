@@ -56,16 +56,19 @@ export const handler = async () => {
     const round1Results = buildResults(round1Row)
     const round2Results = buildResults(round2Row)
 
-    // Compute winner (greatest delta R2 - R1) for results_revealed
+    // Compute winner (greatest % change R2 vs R1) for results_revealed
     let winner = null
     if (row.state === 'results_revealed' && round1Results && round2Results) {
-      const deltas = round2Results.amounts.map((a, i) => a - round1Results.amounts[i])
-      const maxDelta = Math.max(...deltas)
-      const winnerIndices = deltas.reduce((acc, d, i) => {
-        if (d === maxDelta) acc.push(i)
+      const pctChanges = round2Results.amounts.map((a, i) => {
+        const r1 = round1Results.amounts[i]
+        return r1 === 0 ? 0 : (a - r1) / r1
+      })
+      const maxPct = Math.max(...pctChanges)
+      const winnerIndices = pctChanges.reduce((acc, p, i) => {
+        if (p === maxPct) acc.push(i)
         return acc
       }, [])
-      winner = { indices: winnerIndices, delta: maxDelta }
+      winner = { indices: winnerIndices, delta: maxPct }
     }
 
     return {
